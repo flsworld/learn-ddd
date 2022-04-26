@@ -1,0 +1,11 @@
+# API
+fastapi>=0.68.0,<0.69.0
+pydantic>=1.8.0,<2.0.0
+uvicorn>=0.15.0,<0.16.0
+sqlalchemy==1.4.31
+
+# Testing
+pytest==7.0.1
+requests==2.27.1  # starlette got a ModuleNotFoundError for testclient
+pytest-spec==3.2.0
+pytest-cov==3.0.0
