@@ -1,3 +1,11 @@
+"""
+Thin FastAPI endpoints: their only responsibility is doing "web stuff" such as :
+* parsing JSON
+* dealing with permissions
+* producing the right HTTP codes for happy or unhappy cases
+"""
+
+
 from fastapi import APIRouter, status
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

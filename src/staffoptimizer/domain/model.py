@@ -1,3 +1,24 @@
+"""
+This module is a placeholder in which will be stored all entities that serve to model business processes.
+A model is a map of a process or phenomenon that captures a useful property.
+The domain model is the mental map that business owners have of their businesses. All business people have these mental
+map - they’re how humans think about complex processes.
+
+DDD says that the most important thing about software is that it provides a useful model of a problem.
+If we get that model right, our software delivers value and makes new things possible.
+
+DDD book:
+* The original "blue book", Domain-Driven Design by Eric Evans
+* The "red book", Implementing Domain-Driven Design by Vaughn Vernon
+
+This is the part of the code that is closest to the business, the most likely to change, and the place where the most
+value to the business is delivered. This should be easy to understand and modify
+
+In here we'll also put domain service. It is a piece of logic that belongs in the domain model but doesn’t sit
+naturally inside a stateful model class. Instead, a stateless class or function can do the job.
+"""
+
+
 from enum import Enum
 from typing import Optional
 
