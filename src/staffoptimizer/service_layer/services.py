@@ -26,11 +26,18 @@ class HungerStrike(Exception):
     pass
 
 
+class SORunNotFound(Exception):
+    pass
+
+
+class TaskNotFound(Exception):
+    pass
+
+
 def add_task(
     title: str,
     status: str,
     team: str,
-    editor_id: Optional[int],
     run_id: Optional[int],
     uow: unit_of_work.AbstractUnitOfWork,
 ):
@@ -39,9 +46,29 @@ def add_task(
         if so is None:
             so = StaffOptimizer(run_id, tasks=[])
             uow.so.add(so)
-        so.tasks.append(model.Task(title, status, team, editor_id))
+        so.tasks.append(model.Task(title, status, team))
         uow.commit()
     return run_id
+
+
+def allocate(
+    name: str,
+    editor_id: int,
+    ref: str,
+    run_id: int,
+    uow: unit_of_work.AbstractUnitOfWork,
+) -> str:
+    editor = model.Editor(name, editor_id)
+    with uow:
+        so = uow.so.get(run_id)
+        if so is None:
+            raise SORunNotFound(f"Invalid run_id {run_id}")
+        task = next((t for t in so.tasks if t.reference == ref), None)
+        if task is None:
+            raise TaskNotFound(f"Invalid ref {ref}")
+        taskref = so.allocate(editor, task)
+        uow.commit()
+    return taskref
 
 
 def validate(run_id: int, uow: unit_of_work.AbstractUnitOfWork):

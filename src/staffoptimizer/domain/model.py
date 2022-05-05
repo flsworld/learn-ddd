@@ -30,12 +30,13 @@ class Status(Enum):
 
 
 class User:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
 
 class Editor(User):
-    def __init__(self, editor_id):
+    def __init__(self, name: str, editor_id: int):
+        super().__init__(name)
         # Next step here : implement Value Object & Entity pattern
         # This will help to better identify model objects.
         # A good approach when dealing with Entities is to get an identifier close to the real identification of the
@@ -46,25 +47,31 @@ class Editor(User):
 class Task:
     def __init__(
         self,
-        title,
-        status,
-        team,
-        editor_id: Optional[int] = None,
+        ref: str,
+        status: str,
+        team: str,
         run_id: Optional[int] = None,
     ):
-        self.title = title
+        self.reference = ref
         self.status = status
-        self.editor_id = editor_id
         self.team = team
         self.run_id = run_id
+        self._allocations = set()  # type: set[Editor]
+
+    def allocate(self, editor: Editor):
+        self._allocations.add(editor)
+
+    def deallocate(self, editor: Editor):
+        if editor in self._allocations:
+            self._allocations.remove(editor)
 
     @property
     def staffed(self):
-        return self.status > Status.READY_FOR_STAFFING.value and self.editor_id
+        return self.status > Status.READY_FOR_STAFFING.value and self._allocations
 
     @property
     def unallocated(self):
-        return self.status > Status.READY_FOR_STAFFING.value and self.editor_id is None
+        return self.status > Status.READY_FOR_STAFFING.value and not self._allocations
 
     @property
     def computed_by_so(self):
@@ -72,9 +79,13 @@ class Task:
 
 
 class StaffOptimizer:
-    def __init__(self, run_id, tasks):
+    def __init__(self, run_id: int, tasks: list[Task]):
         self.run_id = run_id
         self.tasks = tasks
+
+    def allocate(self, editor: Editor, task: Task):
+        task.allocate(editor)
+        return task.reference
 
     @property
     def staffed_tasks(self):
