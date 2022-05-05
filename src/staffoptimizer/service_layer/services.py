@@ -14,26 +14,32 @@ Things that could be related to an API, CLI or tests !
 Using primitive data types allows the service layer’s clients (tests and FastAPI) to be decoupled from the model
 layer. If the domain model is refactored, this will have no impact on the orchestration layer.
 """
-
+from typing import Optional
 
 from src.staffoptimizer.domain.model import Status, StaffOptimizer
 
 from . import unit_of_work
+from ..domain import model
 
 
 class HungerStrike(Exception):
     pass
 
 
-def run_staffoptimizer(run_id, uow):
-    """
-    Schematization of a job run. Allocating tasks doesn't come from nowhere.
-    """
+def add_task(
+    title: str,
+    status: str,
+    team: str,
+    editor_id: Optional[int],
+    run_id: Optional[int],
+    uow: unit_of_work.AbstractUnitOfWork,
+):
     with uow:
         so = uow.so.get(run_id)
         if so is None:
-            so = StaffOptimizer(run_id, so.tasks)
+            so = StaffOptimizer(run_id, tasks=[])
             uow.so.add(so)
+        so.tasks.append(model.Task(title, status, team, editor_id))
         uow.commit()
     return run_id
 

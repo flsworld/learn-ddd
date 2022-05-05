@@ -35,33 +35,36 @@ class User:
 
 
 class Editor(User):
-    pass
+    def __init__(self, editor_id):
+        # Next step here : implement Value Object & Entity pattern
+        # This will help to better identify model objects.
+        # A good approach when dealing with Entities is to get an identifier close to the real identification of the
+        # object in the domain. For instance : registration_number (matricule)
+        self.editor_id = editor_id
 
 
 class Task:
     def __init__(
         self,
-        ref,
         title,
         status,
         team,
-        editor: Optional[Editor] = None,
+        editor_id: Optional[int] = None,
         run_id: Optional[int] = None,
     ):
-        self.reference = ref
         self.title = title
         self.status = status
-        self.editor = editor
+        self.editor_id = editor_id
         self.team = team
         self.run_id = run_id
 
     @property
     def staffed(self):
-        return self.status > Status.READY_FOR_STAFFING.value and self.editor
+        return self.status > Status.READY_FOR_STAFFING.value and self.editor_id
 
     @property
     def unallocated(self):
-        return self.status > Status.READY_FOR_STAFFING.value and self.editor is None
+        return self.status > Status.READY_FOR_STAFFING.value and self.editor_id is None
 
     @property
     def computed_by_so(self):
