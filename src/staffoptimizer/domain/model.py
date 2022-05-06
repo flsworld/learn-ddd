@@ -30,12 +30,30 @@ class Status(Enum):
 
 
 class User:
+    # The kind of relationship with other user entities is an "is-a". That's the reason why
+    # inheritance will be preferred over composition ("has-a")
+    # TODO: Does the User table need to contain all attributes from all inherited classes ?
+    # Maybe the User table shouldn't be persisted..?
+    # Maybe we could do something like Django
+    # https://docs.djangoproject.com/en/4.0/topics/db/models/#model-inheritance-1
     def __init__(self, name: str):
         self.name = name
 
 
+class ContentStrategist(User):
+    def __init__(self, name: str, csid: str):
+        super().__init__(name)
+        self.csid = csid
+
+
+class EditorSupervisor(User):
+    def __init__(self, name: str, esid: str):
+        super().__init__(name)
+        self.esid = esid
+
+
 class Editor(User):
-    def __init__(self, name: str, editor_id: int):
+    def __init__(self, name: str, editor_id: str):
         super().__init__(name)
         # Next step here : implement Value Object & Entity pattern
         # This will help to better identify model objects.
@@ -47,31 +65,41 @@ class Editor(User):
 class Task:
     def __init__(
         self,
-        ref: str,
+        ref: str,  # title is the reference ATM
         status: str,
         team: str,
-        run_id: Optional[int] = None,
+        run_id: Optional[str] = None,
     ):
         self.reference = ref
         self.status = status
         self.team = team
         self.run_id = run_id
-        self._allocations = set()  # type: set[Editor]
+        self._assignments = set()  # type: set[User]
 
-    def allocate(self, editor: Editor):
-        self._allocations.add(editor)
+    def assign(self, user: User):
+        self._assignments.add(user)
 
-    def deallocate(self, editor: Editor):
-        if editor in self._allocations:
-            self._allocations.remove(editor)
+    def unassign(self, user: User):
+        if user in self._assignments:
+            self._assignments.remove(user)
 
     @property
     def staffed(self):
-        return self.status > Status.READY_FOR_STAFFING.value and self._allocations
+        return self.status > Status.READY_FOR_STAFFING.value and self._assignments
 
     @property
     def unallocated(self):
-        return self.status > Status.READY_FOR_STAFFING.value and not self._allocations
+        """
+        "Unallocated" here represents the fact that the task isn't handled by an editor.
+        This term is used in a well-defined and bounded context. It is common jargon used
+        by the project's team (dev, qa, po, ...) and the domain experts.
+        This ubiquitous language between all actors of the projects is very important !
+        Dedicated meeting where all these actors sit around the same table to discuss about
+        it is crucial !
+        """
+        return self.status > Status.READY_FOR_STAFFING.value and any(
+            isinstance(user, Editor) for user in self._assignments
+        )
 
     @property
     def computed_by_so(self):
@@ -79,12 +107,12 @@ class Task:
 
 
 class StaffOptimizer:
-    def __init__(self, run_id: int, tasks: list[Task]):
+    def __init__(self, run_id: str, tasks: list[Task]):
         self.run_id = run_id
         self.tasks = tasks
 
-    def allocate(self, editor: Editor, task: Task):
-        task.allocate(editor)
+    def assign(self, editor: Editor, task: Task):
+        task.assign(editor)
         return task.reference
 
     @property

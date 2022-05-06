@@ -27,21 +27,20 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
 
 
 def test_validate_after_so_run():
-    staffed_tasks = [
+    tasks = [
         ("Midgar", Status.REVIEW_STAFFING.value, "Arts and Craft"),
         ("Chocobo farm", Status.REVIEW_STAFFING.value, "Kosovo"),
     ]
-    unallocated_tasks = [
-        ("Kalm", Status.REVIEW_STAFFING.value, "Brazil"),
-        ("Junon", Status.REVIEW_STAFFING.value, "Arts and Craft"),
-    ]
 
     uow = FakeUnitOfWork()
-    run_id = 1
-    for task in staffed_tasks + unallocated_tasks:
-        services.add_task(*task, run_id, uow)
-    # call allocate !!
-
+    run_id = "KB9"
+    # TODO
+    services.add_editor()
+    for task in tasks:
+        ref, status, team = task
+        services.add_task(ref, status, team, run_id, uow)
+        # TODO
+        services.assign(ref)
 
     services.validate(run_id, uow)
 

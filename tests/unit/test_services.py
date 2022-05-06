@@ -28,6 +28,6 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
 
 def test_allocate_returns_allocation():
     uow = FakeUnitOfWork()
-    services.add_task("Vidéo d'Emma", Status.REVIEW_STAFFING.value, "Arts and Craft", 7777, uow)
-    result = services.allocate("Medhi", 100, "Vidéo d'Emma", 7777, uow)
+    services.add_task("Vidéo d'Emma", Status.REVIEW_STAFFING.value, "Arts and Craft", "CR7", uow)
+    result = services.assign("Medhi", 100, "Vidéo d'Emma", "CR7", uow)
     assert result == "Vidéo d'Emma"

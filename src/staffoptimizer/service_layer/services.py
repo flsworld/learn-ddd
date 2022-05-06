@@ -38,7 +38,7 @@ def add_task(
     title: str,
     status: str,
     team: str,
-    run_id: Optional[int],
+    run_id: Optional[str],
     uow: unit_of_work.AbstractUnitOfWork,
 ):
     with uow:
@@ -51,27 +51,34 @@ def add_task(
     return run_id
 
 
-def allocate(
-    name: str,
-    editor_id: int,
+def add_editor(name: str, editor_id: str, uow: unit_of_work.AbstractUnitOfWork):
+    pass
+
+
+def assign(
+    editor_id: str,
     ref: str,
-    run_id: int,
+    run_id: str,
     uow: unit_of_work.AbstractUnitOfWork,
 ) -> str:
-    editor = model.Editor(name, editor_id)
     with uow:
         so = uow.so.get(run_id)
         if so is None:
             raise SORunNotFound(f"Invalid run_id {run_id}")
         task = next((t for t in so.tasks if t.reference == ref), None)
         if task is None:
-            raise TaskNotFound(f"Invalid ref {ref}")
-        taskref = so.allocate(editor, task)
+            raise TaskNotFound(f"Invalid reference {ref}")
+        editor = next(
+            (e for t in so.tasks for e in t._assignments if e.editor_id == editor_id),
+            None,
+        )
+        # TODO: handle typing
+        taskref = so.assign(editor, task)
         uow.commit()
     return taskref
 
 
-def validate(run_id: int, uow: unit_of_work.AbstractUnitOfWork):
+def validate(run_id: str, uow: unit_of_work.AbstractUnitOfWork):
     with uow:
         so = uow.so.get(run_id)
         if not so.tasks:
