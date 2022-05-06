@@ -85,7 +85,9 @@ class Task:
 
     @property
     def staffed(self):
-        return self.status > Status.READY_FOR_STAFFING.value and self._assignments
+        return self.status > Status.READY_FOR_STAFFING.value and any(
+            isinstance(user, Editor) for user in self._assignments
+        )
 
     @property
     def unallocated(self):
@@ -97,7 +99,7 @@ class Task:
         Dedicated meeting where all these actors sit around the same table to discuss about
         it is crucial !
         """
-        return self.status > Status.READY_FOR_STAFFING.value and any(
+        return self.status > Status.READY_FOR_STAFFING.value and not any(
             isinstance(user, Editor) for user in self._assignments
         )
 

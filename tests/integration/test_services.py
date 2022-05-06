@@ -1,4 +1,5 @@
 from src.staffoptimizer.adapters import repository
+from src.staffoptimizer.domain import model
 from src.staffoptimizer.domain.model import Status
 from src.staffoptimizer.service_layer import unit_of_work, services
 
@@ -27,20 +28,17 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
 
 
 def test_validate_after_so_run():
-    tasks = [
-        ("Midgar", Status.REVIEW_STAFFING.value, "Arts and Craft"),
-        ("Chocobo farm", Status.REVIEW_STAFFING.value, "Kosovo"),
+    allocations = [
+        (("Midgar", Status.REVIEW_STAFFING.value, "Arts and Craft"), "MB13"),
+        (("Chocobo farm", Status.REVIEW_STAFFING.value, "Kosovo"), "FLS92"),
     ]
 
     uow = FakeUnitOfWork()
     run_id = "KB9"
-    # TODO
-    services.add_editor()
-    for task in tasks:
+    for task, editor_id in allocations:
         ref, status, team = task
         services.add_task(ref, status, team, run_id, uow)
-        # TODO
-        services.assign(ref)
+        services.assign(editor_id, ref, run_id, uow)
 
     services.validate(run_id, uow)
 

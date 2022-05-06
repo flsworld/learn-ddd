@@ -34,8 +34,16 @@ class TaskNotFound(Exception):
     pass
 
 
+class TaskAlreadyExists(Exception):
+    pass
+
+
+class TaskAlreadyStaffed(Exception):
+    pass
+
+
 def add_task(
-    title: str,
+    ref: str,
     status: str,
     team: str,
     run_id: Optional[str],
@@ -46,13 +54,11 @@ def add_task(
         if so is None:
             so = StaffOptimizer(run_id, tasks=[])
             uow.so.add(so)
-        so.tasks.append(model.Task(title, status, team))
+        if next((t for t in so.tasks if t.reference == ref), None):
+            raise TaskAlreadyExists
+        so.tasks.append(model.Task(ref, status, team))
         uow.commit()
     return run_id
-
-
-def add_editor(name: str, editor_id: str, uow: unit_of_work.AbstractUnitOfWork):
-    pass
 
 
 def assign(
@@ -68,11 +74,11 @@ def assign(
         task = next((t for t in so.tasks if t.reference == ref), None)
         if task is None:
             raise TaskNotFound(f"Invalid reference {ref}")
-        editor = next(
-            (e for t in so.tasks for e in t._assignments if e.editor_id == editor_id),
-            None,
-        )
-        # TODO: handle typing
+        if task.staffed:
+            raise TaskAlreadyStaffed
+        # TODO: find a way to get an editor without passing all args
+        editor = model.Editor(name="TODO", editor_id=editor_id)
+        # TODO: raise EditorNotFound when needed
         taskref = so.assign(editor, task)
         uow.commit()
     return taskref
