@@ -42,6 +42,10 @@ class TaskAlreadyStaffed(Exception):
     pass
 
 
+class EditorNotFound(Exception):
+    pass
+
+
 def add_task(
     ref: str,
     status: str,
@@ -76,9 +80,10 @@ def assign(
             raise TaskNotFound(f"Invalid reference {ref}")
         if task.staffed:
             raise TaskAlreadyStaffed
-        # TODO: find a way to get an editor without passing all args
-        editor = model.Editor(name="TODO", editor_id=editor_id)
-        # TODO: raise EditorNotFound when needed
+        # TODO: Is it really the proper way to do this ?
+        editor = uow.user.get_editor(editor_id)
+        if editor is None:
+            raise EditorNotFound(f"Invalid reference {editor_id}")
         taskref = so.assign(editor, task)
         uow.commit()
     return taskref
@@ -90,11 +95,8 @@ def validate(run_id: str, uow: unit_of_work.AbstractUnitOfWork):
         if not so.tasks:
             raise HungerStrike("Not a single task to run in the StaffOptimizer")
 
-        # To meditate : should we call a domain service instead ?
-        # task.update_status() ?
         for task in so.staffed_tasks:
             task.status = Status.READY_TO_EDIT.value
-
         for task in so.unallocated_tasks:
             task.status = Status.READY_FOR_STAFFING.value
 

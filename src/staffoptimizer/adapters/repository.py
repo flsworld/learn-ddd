@@ -21,15 +21,15 @@ from src.staffoptimizer.domain import model
 
 
 class AbstractRepository:
-    def add(self, so: model.StaffOptimizer):
+    def add(self, model_entity):
         raise NotImplementedError
 
-    def get(self, reference) -> model.StaffOptimizer:
+    def get(self, reference):
         raise NotImplementedError
 
 
 class SQLAlchemyRepository(AbstractRepository):
-    def __init__(self, session):
+    def __init__(self, session, entity):
         """
         Session establishes all conversations with the database and represents a “holding zone” for all the objects
         which you’ve loaded or associated with it during its lifespan. It provides the interface where SELECT and other
@@ -40,12 +40,35 @@ class SQLAlchemyRepository(AbstractRepository):
         https://docs.sqlalchemy.org/en/14/orm/session_basics.html#what-does-the-session-do
         """
         self.session = session
+        self.entity = entity
 
-    def add(self, so):
-        self.session.add(so)
+    def add(self, entry):
+        self.session.add(entry)
 
-    def get(self, run_id):
-        return self.session.query(model.StaffOptimizer).filter_by(run_id=run_id).one()
+    def get(self, reference):
+        raise NotImplementedError
 
     def list(self):
-        return self.session.query(model.StaffOptimizer).all()
+        return self.session.query(self.entity).all()
+
+
+class StaffOptimizerRepository(SQLAlchemyRepository):
+    def __init__(self, session):
+        super().__init__(session, model.StaffOptimizer)
+
+    def get(self, run_id) -> model.StaffOptimizer:
+        return self.session.query(self.entity).filter_by(run_id=run_id).one()
+
+
+class UserRepository(SQLAlchemyRepository):
+    def __init__(self, session):
+        super().__init__(session, model.User)
+
+    def get(self, reference):
+        """
+        Need to think further about the current design
+        """
+        raise NotImplementedError
+
+    def get_editor(self, editor_id):
+        return self.session.query(self.entity).filter_by(editor_id=editor_id).one()

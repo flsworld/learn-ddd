@@ -20,7 +20,8 @@ from src.staffoptimizer.adapters import repository
 
 
 class AbstractUnitOfWork:
-    so: repository.AbstractRepository
+    # so: repository.AbstractRepository
+    # user: repository.AbstractRepository
 
     def __enter__(self) -> AbstractUnitOfWork:
         return self
@@ -48,7 +49,8 @@ class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def __enter__(self):
         self.session = self.session_factory()
-        self.so = repository.SQLAlchemyRepository(self.session)
+        self.so = repository.StaffOptimizerRepository(self.session)
+        self.user = repository.UserRepository(self.session)
         return super().__enter__()
 
     def __exit__(self, *args):
@@ -60,4 +62,3 @@ class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def rollback(self):
         self.session.rollback()
-

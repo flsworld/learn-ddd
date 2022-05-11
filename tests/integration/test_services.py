@@ -4,7 +4,7 @@ from src.staffoptimizer.domain.model import Status
 from src.staffoptimizer.service_layer import unit_of_work, services
 
 
-class FakeRepository(repository.AbstractRepository):
+class FakeSORepository(repository.AbstractRepository):
     def __init__(self, so):
         self._so = set(so)
 
@@ -15,9 +15,24 @@ class FakeRepository(repository.AbstractRepository):
         return next((so for so in self._so if so.run_id == run_id), None)
 
 
+class FakeUserRepository(repository.AbstractRepository):
+    def __init__(self, user):
+        self._user = set(user)
+
+    def add(self, user):
+        self._user.add(user)
+
+    def get(self, ref):
+        pass
+
+    def get_editor(self, editor_id):
+        return next((user for user in self._user if user.editor_id == editor_id), None)
+
+
 class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
     def __init__(self):
-        self.so = FakeRepository([])
+        self.so = FakeSORepository([])
+        self.user = FakeUserRepository([])
         self.committed = False
 
     def commit(self):
@@ -34,6 +49,8 @@ def test_validate_after_so_run():
     ]
 
     uow = FakeUnitOfWork()
+    uow.user.add(model.Editor("Medhi", "MB13"))
+    uow.user.add(model.Editor("Fred", "FLS92"))
     run_id = "KB9"
     for task, editor_id in allocations:
         ref, status, team = task
